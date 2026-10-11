@@ -1,14 +1,15 @@
+
 package org.wit.placemark
 
 import android.os.Bundle
-import android.text.InputType
-import android.view.WindowInsets
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.ScrollView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import org.wit.placemark.models.PlacedMark
 
 class AddEditActivity : ComponentActivity() {
@@ -23,78 +24,54 @@ class AddEditActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Load the XML layout
+        setContentView(R.layout.activity_add_edit)
+
+        // Handle system bar insets
+        val root = findViewById<View>(R.id.addEditRoot)
+
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars()
+            )
+
+            view.setPadding(
+                bars.left,
+                bars.top,
+                bars.right,
+                bars.bottom
+            )
+
+            insets
+        }
+
+        // Connect Kotlin variables to XML fields
+        titleInput = findViewById(R.id.titleInput)
+        descriptionInput = findViewById(R.id.descriptionInput)
+        xInput = findViewById(R.id.xInput)
+        yInput = findViewById(R.id.yInput)
+
+        val saveButton = findViewById<Button>(R.id.saveButton)
+        val cancelButton = findViewById<Button>(R.id.cancelButton)
+
+        // Check whether we are editing an existing mark
         editingId = intent.getLongExtra("id", -1L)
             .takeIf { it != -1L }
 
-        createUserInterface()
+        if (editingId != null) {
+            findViewById<TextView>(R.id.formTitle)
+                .text = "Edit Mark"
 
-        editingId?.let { loadExistingMark(it) }
-    }
-
-    private fun dp(value: Int): Int =
-        (value * resources.displayMetrics.density).toInt()
-
-    private fun createUserInterface() {
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
+            loadExistingMark(editingId!!)
         }
 
-        val scrollView = ScrollView(this).apply {
-            addView(root)
-            setOnApplyWindowInsetsListener { view, insets ->
-                val bars = insets.getInsets(
-                    WindowInsets.Type.systemBars()
-                )
-                view.setPadding(
-                    bars.left + dp(16),
-                    bars.top + dp(16),
-                    bars.right + dp(16),
-                    bars.bottom + dp(16)
-                )
-                insets
-            }
+        saveButton.setOnClickListener {
+            saveMark()
         }
 
-        titleInput = EditText(this).apply {
-            hint = "Title"
+        cancelButton.setOnClickListener {
+            finish()
         }
-
-        descriptionInput = EditText(this).apply {
-            hint = "Description"
-        }
-
-        xInput = EditText(this).apply {
-            hint = "X coordinate"
-            inputType = InputType.TYPE_CLASS_NUMBER or
-                    InputType.TYPE_NUMBER_FLAG_DECIMAL or
-                    InputType.TYPE_NUMBER_FLAG_SIGNED
-        }
-
-        yInput = EditText(this).apply {
-            hint = "Y coordinate"
-            inputType = InputType.TYPE_CLASS_NUMBER or
-                    InputType.TYPE_NUMBER_FLAG_DECIMAL or
-                    InputType.TYPE_NUMBER_FLAG_SIGNED
-        }
-
-        val saveButton = Button(this).apply {
-            text = "Save"
-            setOnClickListener { saveMark() }
-        }
-
-        val cancelButton = Button(this).apply {
-            text = "Cancel"
-            setOnClickListener { finish() }
-        }
-
-        root.addView(titleInput)
-        root.addView(descriptionInput)
-        root.addView(xInput)
-        root.addView(yInput)
-        root.addView(saveButton)
-        root.addView(cancelButton)
-
-        setContentView(scrollView)
     }
 
     private fun loadExistingMark(id: Long) {
@@ -106,6 +83,7 @@ class AddEditActivity : ComponentActivity() {
                 "Mark not found",
                 Toast.LENGTH_SHORT
             ).show()
+
             finish()
             return
         }
@@ -120,18 +98,23 @@ class AddEditActivity : ComponentActivity() {
         val title = titleInput.text.toString().trim()
         val description = descriptionInput.text.toString().trim()
 
+        // Validate title
         if (title.isEmpty()) {
             titleInput.error = "Title is required"
             return
         }
 
+        // Validate X coordinate
         val x = xInput.text.toString().toDoubleOrNull()
+
         if (x == null) {
             xInput.error = "Enter a valid number"
             return
         }
 
+        // Validate Y coordinate
         val y = yInput.text.toString().toDoubleOrNull()
+
         if (y == null) {
             yInput.error = "Enter a valid number"
             return
@@ -146,13 +129,17 @@ class AddEditActivity : ComponentActivity() {
         )
 
         if (editingId == null) {
+            // Create a new placemark
             AppData.placemarks.create(mark)
+
             Toast.makeText(
                 this,
                 "Mark created",
                 Toast.LENGTH_SHORT
             ).show()
+
         } else {
+            // Update an existing placemark
             val updated = AppData.placemarks.update(mark)
 
             if (!updated) {
