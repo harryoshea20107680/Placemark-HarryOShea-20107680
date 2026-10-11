@@ -11,22 +11,31 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Placemark">
-        <activity
-            android:name=".PlacemarkActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.Placemark"
-            android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <!-- Add/Edit screen -->
         <activity
             android:name=".AddEditActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
+        <!-- RecyclerView list screen -->
+        <activity
+            android:name=".MarkListActivity"
+            android:exported="false" />
+
+        <!-- Main menu and launcher -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+        </activity>
+
     </application>
 
 </manifest>
