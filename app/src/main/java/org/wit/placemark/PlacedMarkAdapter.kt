@@ -4,15 +4,14 @@ package org.wit.placemark
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import org.wit.placemark.models.PlacedMark
+import timber.log.Timber
 
 class PlacedMarkAdapter(
     private var marks: List<PlacedMark>,
-    private val onEdit: (PlacedMark) -> Unit,
-    private val onDelete: (PlacedMark) -> Unit
+    private val listener: OnMarkListener
 ) : RecyclerView.Adapter<PlacedMarkAdapter.MarkViewHolder>() {
 
     class MarkViewHolder(itemView: View) :
@@ -26,12 +25,6 @@ class PlacedMarkAdapter(
 
         val coordinatesText: TextView =
             itemView.findViewById(R.id.coordinatesText)
-
-        val editButton: Button =
-            itemView.findViewById(R.id.editButton)
-
-        val deleteButton: Button =
-            itemView.findViewById(R.id.deleteButton)
     }
 
     override fun onCreateViewHolder(
@@ -55,6 +48,7 @@ class PlacedMarkAdapter(
     ) {
         val mark = marks[position]
 
+        // Populate the placemark information
         holder.titleText.text =
             "${mark.id}: ${mark.title}"
 
@@ -63,12 +57,16 @@ class PlacedMarkAdapter(
         holder.coordinatesText.text =
             "X: ${mark.x}, Y: ${mark.y}"
 
-        holder.editButton.setOnClickListener {
-            onEdit(mark)
+        // Single tap: edit placemark
+        holder.itemView.setOnClickListener {
+            Timber.d("Mark tapped: id=%d", mark.id)
+            listener.onMarkClick(mark)
         }
 
-        holder.deleteButton.setOnClickListener {
-            onDelete(mark)
+        // Long press: request placemark deletion
+        holder.itemView.setOnLongClickListener {
+            Timber.d("Mark long-pressed: id=%d", mark.id)
+            listener.onMarkLongClick(mark)
         }
     }
 
