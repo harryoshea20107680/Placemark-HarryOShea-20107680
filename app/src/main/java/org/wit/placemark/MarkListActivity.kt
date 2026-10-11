@@ -1,6 +1,7 @@
 
 package org.wit.placemark
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -11,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.wit.placemark.models.PlacedMark
+import timber.log.Timber
 
 class MarkListActivity : ComponentActivity() {
 
@@ -22,7 +24,7 @@ class MarkListActivity : ComponentActivity() {
 
         setContentView(R.layout.activity_mark_list)
 
-        // Apply system bar insets while keeping layout padding
+        // Handle system bar insets
         val root = findViewById<View>(R.id.markListRoot)
 
         val left = root.paddingLeft
@@ -45,19 +47,23 @@ class MarkListActivity : ComponentActivity() {
             insets
         }
 
-        // Find RecyclerView in the XML layout
+        // Find RecyclerView
         recyclerView = findViewById(R.id.marksRecyclerView)
 
-        // Create adapter using our existing placemark store
+        // Create adapter using our new OnMarkListener interface
         adapter = PlacedMarkAdapter(
             marks = AppData.placemarks.findAll().toList(),
 
-            onEdit = { mark ->
-                editMark(mark)
-            },
+            listener = object : OnMarkListener {
 
-            onDelete = { mark ->
-                deleteMark(mark)
+                override fun onMarkClick(mark: PlacedMark) {
+                    editMark(mark)
+                }
+
+                override fun onMarkLongClick(mark: PlacedMark): Boolean {
+                    confirmDelete(mark)
+                    return true
+                }
             }
         )
 
@@ -84,7 +90,11 @@ class MarkListActivity : ComponentActivity() {
         }
     }
 
+    // Open selected placemark for editing
     private fun editMark(mark: PlacedMark) {
+
+        Timber.d("Opening editor for mark id=%d", mark.id)
+
         val intent = Intent(
             this,
             AddEditActivity::class.java
@@ -95,8 +105,40 @@ class MarkListActivity : ComponentActivity() {
         startActivity(intent)
     }
 
+    // Ask for confirmation before deleting
+    private fun confirmDelete(mark: PlacedMark) {
+
+        Timber.d(
+            "Showing delete confirmation for mark id=%d",
+            mark.id
+        )
+
+        AlertDialog.Builder(this)
+            .setTitle("Delete Placemark")
+            .setMessage(
+                "Are you sure you want to delete '${mark.title}'?"
+            )
+            .setPositiveButton("Delete") { _, _ ->
+                deleteMark(mark)
+            }
+            .setNegativeButton("Cancel") { _, _ ->
+                Timber.d(
+                    "Deletion cancelled for mark id=%d",
+                    mark.id
+                )
+            }
+            .show()
+    }
+    // Delete placemark and refresh RecyclerView
     private fun deleteMark(mark: PlacedMark) {
-        AppData.placemarks.delete(mark.id)
+
+        val deleted = AppData.placemarks.delete(mark.id)
+
+        if (deleted) {
+            Timber.i("Mark deleted: id=%d", mark.id)
+        } else {
+            Timber.w("Could not delete mark: id=%d", mark.id)
+        }
 
         adapter.updateMarks(
             AppData.placemarks.findAll().toList()

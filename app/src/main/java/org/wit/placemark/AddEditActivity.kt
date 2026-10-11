@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import org.wit.placemark.models.PlacedMark
+import timber.log.Timber
 
 class AddEditActivity : ComponentActivity() {
 
@@ -131,6 +132,7 @@ class AddEditActivity : ComponentActivity() {
         if (editingId == null) {
             // Create a new placemark
             AppData.placemarks.create(mark)
+            Timber.i("Placemark created: id=%d", mark.id)
 
             Toast.makeText(
                 this,
@@ -148,6 +150,7 @@ class AddEditActivity : ComponentActivity() {
                     "Mark not found",
                     Toast.LENGTH_SHORT
                 ).show()
+                Timber.w("Placemark update failed: id=%d", mark.id)
                 return
             }
 
@@ -156,6 +159,7 @@ class AddEditActivity : ComponentActivity() {
                 "Mark updated",
                 Toast.LENGTH_SHORT
             ).show()
+            Timber.i("Placemark updated: id=%d", mark.id)
         }
 
         finish()
