@@ -14,6 +14,7 @@ import timber.log.Timber
 import android.net.Uri
 import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Intent
 
 
 class AddEditActivity : ComponentActivity() {
@@ -28,6 +29,8 @@ class AddEditActivity : ComponentActivity() {
     private lateinit var imagePreview: ImageView
     private var selectedImageUri: Uri? = null
 
+    private var selectedLatitude: Double? = null
+    private var selectedLongitude: Double? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +61,61 @@ class AddEditActivity : ComponentActivity() {
         descriptionInput = findViewById(R.id.descriptionInput)
         xInput = findViewById(R.id.xInput)
         yInput = findViewById(R.id.yInput)
+
+        val mapPicker =
+            registerForActivityResult(
+                ActivityResultContracts.StartActivityForResult()
+            ) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    val data = result.data
+                        ?: return@registerForActivityResult
+
+                    selectedLatitude =
+                        data.getDoubleExtra("latitude", 0.0)
+
+                    selectedLongitude =
+                        data.getDoubleExtra("longitude", 0.0)
+
+                    selectedLatitude?.let {
+                        xInput.setText(it.toString())
+                    }
+
+                    selectedLongitude?.let {
+                        yInput.setText(it.toString())
+                    }
+                }
+            }
+
+
+        findViewById<Button>(R.id.buttonLoc).setOnClickListener {
+
+            val intent = Intent(
+                this,
+                MapPickerActivity::class.java
+            )
+
+            // Get the current coordinates from the form
+            val latitude = xInput.text.toString().toDoubleOrNull()
+            val longitude = yInput.text.toString().toDoubleOrNull()
+
+            // Pass existing location if coordinates are valid
+            if (latitude != null && longitude != null &&
+                latitude.isFinite() && longitude.isFinite() &&
+                latitude in -90.0..90.0 &&
+                longitude in -180.0..180.0) {
+
+                intent.putExtra("latitude", latitude)
+                intent.putExtra("longitude", longitude)
+            }
+
+            // Pass the placemark title
+            intent.putExtra(
+                "title",
+                titleInput.text.toString().trim()
+            )
+
+            mapPicker.launch(intent)
+        }
 
         imagePreview = findViewById(R.id.imageViewAdd)
 
