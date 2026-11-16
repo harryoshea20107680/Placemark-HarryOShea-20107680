@@ -67,6 +67,7 @@ class PlacemarkJSONStore(
         foundPlacemark.x = placemark.x
         foundPlacemark.y = placemark.y
         foundPlacemark.imageUri = placemark.imageUri
+        foundPlacemark.zoom = placemark.zoom
 
         serialize()
         return true

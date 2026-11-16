@@ -21,7 +21,6 @@ class MainActivity : ComponentActivity() {
             Timber.plant(Timber.DebugTree())
         }
 
-        Timber.d("MainActivity created")
 
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)

@@ -43,8 +43,11 @@ class MapPickerActivity : ComponentActivity() {
 
         val start = GeoPoint(lat, lon)
 
+        val initialZoom = intent.getDoubleExtra("zoom", 18.0)
+            .takeIf { it.isFinite() && it in 3.0..20.0 }
+            ?: 18.0
 
-        map.controller.setZoom(18.0)
+        map.controller.setZoom(initialZoom)
         map.controller.setCenter(start)
 
         setSelectedPoint(start)
@@ -81,6 +84,7 @@ class MapPickerActivity : ComponentActivity() {
             val result = Intent()
                 .putExtra("latitude", point.latitude)
                 .putExtra("longitude", point.longitude)
+                .putExtra("zoom", map.zoomLevelDouble)
 
             setResult(Activity.RESULT_OK, result)
             finish()

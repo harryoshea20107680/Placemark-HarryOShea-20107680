@@ -28,6 +28,7 @@ class AddEditActivity : ComponentActivity() {
 
     private lateinit var imagePreview: ImageView
     private var selectedImageUri: Uri? = null
+    private var selectedZoom: Double = 18.0
 
     private var selectedLatitude: Double? = null
     private var selectedLongitude: Double? = null
@@ -83,6 +84,10 @@ class AddEditActivity : ComponentActivity() {
                     selectedLongitude?.let {
                         yInput.setText(it.toString())
                     }
+
+                    selectedZoom = data.getDoubleExtra("zoom", 18.0)
+                        .takeIf { it.isFinite() && it in 3.0..20.0 }
+                        ?: 18.0
                 }
             }
 
@@ -113,6 +118,8 @@ class AddEditActivity : ComponentActivity() {
                 "title",
                 titleInput.text.toString().trim()
             )
+
+            intent.putExtra("zoom", selectedZoom)
 
             mapPicker.launch(intent)
         }
@@ -190,6 +197,10 @@ class AddEditActivity : ComponentActivity() {
 
         selectedImageUri = mark.imageUri?.let { Uri.parse(it) }
 
+        selectedZoom = mark.zoom
+            .takeIf { it.isFinite() && it in 3.0..20.0 }
+            ?: 18.0
+
         if (selectedImageUri != null) {
             imagePreview.setImageURI(selectedImageUri)
         } else {
@@ -234,7 +245,8 @@ class AddEditActivity : ComponentActivity() {
                 desc = description,
                 x = x,
                 y = y,
-                imageUri = selectedImageUri?.toString()
+                imageUri = selectedImageUri?.toString(),
+                zoom = selectedZoom
             )
 
             // Validate title and coordinate ranges
