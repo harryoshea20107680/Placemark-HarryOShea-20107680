@@ -53,6 +53,23 @@
             android:hint="Y coordinate"
             android:inputType="numberDecimal|numberSigned" />
 
+
+        <ImageView
+            android:id="@+id/imageViewAdd"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
+            android:contentDescription="Selected placemark image"
+            android:src="@android:drawable/ic_menu_gallery" />
+
+        <Button
+            android:id="@+id/imagePickButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Choose Image" />
+
+
         <Button
             android:id="@+id/saveButton"
             android:layout_width="match_parent"
