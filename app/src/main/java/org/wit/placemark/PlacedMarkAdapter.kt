@@ -1,4 +1,3 @@
-
 package org.wit.placemark
 
 import android.view.LayoutInflater
@@ -8,6 +7,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import org.wit.placemark.models.PlacedMark
 import timber.log.Timber
+import android.net.Uri
+import android.widget.ImageView
+
 
 class PlacedMarkAdapter(
     private var marks: List<PlacedMark>,
@@ -25,6 +27,9 @@ class PlacedMarkAdapter(
 
         val coordinatesText: TextView =
             itemView.findViewById(R.id.coordinatesText)
+
+        val markImage: ImageView =
+            itemView.findViewById(R.id.markImage)
     }
 
     override fun onCreateViewHolder(
@@ -47,6 +52,16 @@ class PlacedMarkAdapter(
         position: Int
     ) {
         val mark = marks[position]
+
+        val imageUri = mark.imageUri?.let { Uri.parse(it) }
+
+        if (imageUri != null) {
+            holder.markImage.setImageURI(imageUri)
+        } else {
+            holder.markImage.setImageResource(
+                android.R.drawable.ic_menu_gallery
+            )
+        }
 
         // Populate the placemark information
         holder.titleText.text =

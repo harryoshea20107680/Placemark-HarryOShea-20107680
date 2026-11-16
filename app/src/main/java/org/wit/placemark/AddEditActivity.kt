@@ -1,4 +1,3 @@
-
 package org.wit.placemark
 
 import android.os.Bundle
@@ -12,6 +11,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import org.wit.placemark.models.PlacedMark
 import timber.log.Timber
+import android.net.Uri
+import android.widget.ImageView
+import androidx.activity.result.contract.ActivityResultContracts
+
 
 class AddEditActivity : ComponentActivity() {
 
@@ -21,6 +24,10 @@ class AddEditActivity : ComponentActivity() {
     private lateinit var yInput: EditText
 
     private var editingId: Long? = null
+
+    private lateinit var imagePreview: ImageView
+    private var selectedImageUri: Uri? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +58,35 @@ class AddEditActivity : ComponentActivity() {
         descriptionInput = findViewById(R.id.descriptionInput)
         xInput = findViewById(R.id.xInput)
         yInput = findViewById(R.id.yInput)
+
+        imagePreview = findViewById(R.id.imageViewAdd)
+
+        val imagePicker =
+            registerForActivityResult(
+                ActivityResultContracts.OpenDocument()
+            ) { uri: Uri? ->
+
+                if (uri != null) {
+
+                    // Keep access to the document URI for later use.
+                    try {
+                        contentResolver.takePersistableUriPermission(
+                            uri,
+                            android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    } catch (_: SecurityException) {
+                        // Some providers may not grant persistable access.
+                    }
+
+                    selectedImageUri = uri
+                    imagePreview.setImageURI(uri)
+                }
+            }
+
+        findViewById<Button>(R.id.imagePickButton).setOnClickListener {
+            imagePicker.launch(arrayOf("image/*"))
+        }
+
 
         val saveButton = findViewById<Button>(R.id.saveButton)
         val cancelButton = findViewById<Button>(R.id.cancelButton)
@@ -93,7 +129,18 @@ class AddEditActivity : ComponentActivity() {
         descriptionInput.setText(mark.desc)
         xInput.setText(mark.x.toString())
         yInput.setText(mark.y.toString())
+
+        selectedImageUri = mark.imageUri?.let { Uri.parse(it) }
+
+        if (selectedImageUri != null) {
+            imagePreview.setImageURI(selectedImageUri)
+        } else {
+            imagePreview.setImageResource(
+                android.R.drawable.ic_menu_gallery
+            )
+        }
     }
+
 
     private fun saveMark() {
         val title = titleInput.text.toString().trim()
@@ -105,63 +152,81 @@ class AddEditActivity : ComponentActivity() {
             return
         }
 
-        // Validate X coordinate
+        // Validate latitude
         val x = xInput.text.toString().toDoubleOrNull()
 
         if (x == null) {
-            xInput.error = "Enter a valid number"
+            xInput.error = "Enter a valid latitude"
             return
         }
 
-        // Validate Y coordinate
+        // Validate longitude
         val y = yInput.text.toString().toDoubleOrNull()
 
         if (y == null) {
-            yInput.error = "Enter a valid number"
+            yInput.error = "Enter a valid longitude"
             return
         }
 
-        val mark = PlacedMark(
-            id = editingId ?: 0L,
-            title = title,
-            desc = description,
-            x = x,
-            y = y
-        )
+        try {
+            // Create placemark from the form
+            val mark = PlacedMark(
+                id = editingId ?: 0L,
+                title = title,
+                desc = description,
+                x = x,
+                y = y,
+                imageUri = selectedImageUri?.toString()
+            )
 
-        if (editingId == null) {
-            // Create a new placemark
-            AppData.placemarks.create(mark)
-            Timber.i("Placemark created: id=%d", mark.id)
+            // Validate title and coordinate ranges
+            mark.validate()
 
-            Toast.makeText(
-                this,
-                "Mark created",
-                Toast.LENGTH_SHORT
-            ).show()
+            if (editingId == null) {
+                // Create new placemark
+                AppData.placemarks.create(mark)
 
-        } else {
-            // Update an existing placemark
-            val updated = AppData.placemarks.update(mark)
+                Timber.i("Placemark created: id=%d", mark.id)
 
-            if (!updated) {
                 Toast.makeText(
                     this,
-                    "Mark not found",
+                    "Mark created",
                     Toast.LENGTH_SHORT
                 ).show()
-                Timber.w("Placemark update failed: id=%d", mark.id)
-                return
+
+            } else {
+                // Update existing placemark
+                val updated = AppData.placemarks.update(mark)
+
+                if (!updated) {
+                    Toast.makeText(
+                        this,
+                        "Mark not found",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    Timber.w("Placemark update failed: id=%d", mark.id)
+                    return
+                }
+
+                Timber.i("Placemark updated: id=%d", mark.id)
+
+                Toast.makeText(
+                    this,
+                    "Mark updated",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
 
+            finish()
+
+        } catch (e: IllegalArgumentException) {
+            // Display validation errors without crashing
             Toast.makeText(
                 this,
-                "Mark updated",
-                Toast.LENGTH_SHORT
+                e.message ?: "Please check the entered values.",
+                Toast.LENGTH_LONG
             ).show()
-            Timber.i("Placemark updated: id=%d", mark.id)
         }
-
-        finish()
     }
 }
