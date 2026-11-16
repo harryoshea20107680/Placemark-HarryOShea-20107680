@@ -4,9 +4,10 @@ data class PlacedMark(
     var id: Long = 0L,
     var title: String = "",
     var desc: String = "",
-    var x: Double = 0.0,  // Latitude
-    var y: Double = 0.0,  // Longitude
-    var imageUri: String? = null
+    var x: Double = 0.0,
+    var y: Double = 0.0,
+    var imageUri: String? = null,
+    var zoom: Double = 18.0
 ) {
     fun validate() {
         require(title.isNotBlank()) {

@@ -18,8 +18,13 @@ sourceSets {
             "../app/src/main/java/org/wit/placemark/models",
             "../app/src/main/java/org/wit/placemark/main"
         )
+
+        // JSONStore requires Android Context.
+        // Exclude it from the plain Kotlin/JVM console module.
+        kotlin.exclude("**/PlacemarkJSONStore.kt")
     }
 }
+
 
 tasks.named<JavaExec>("run") {
     standardInput = System.`in`

@@ -1,7 +1,7 @@
 package org.wit.placemark
 
-import org.wit.placemark.models.PlacemarkMemStore
+import org.wit.placemark.models.PlacemarkStore
 
 object AppData {
-    val placemarks = PlacemarkMemStore()
+    lateinit var placemarks: PlacemarkStore
 }
