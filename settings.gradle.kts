@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 rootProject.name = "Placemark"
 include(":app")
 include(":lab1console")
+include(":lab1console:helpers")

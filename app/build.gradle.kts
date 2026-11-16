@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation("com.jakewharton.timber:timber:5.0.1")
     implementation("org.osmdroid:osmdroid-android:6.1.20")
+    implementation(libs.gson)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

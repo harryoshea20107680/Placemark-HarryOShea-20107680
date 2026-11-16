@@ -112,6 +112,9 @@ class MapPickerActivity : ComponentActivity() {
         marker?.position = point
         marker?.title = selectedTitle
 
+        // Display the current selected coordinates
+        marker?.snippet =
+            "GPS: ${point.latitude}, ${point.longitude}"
 
         map.invalidate()
     }
